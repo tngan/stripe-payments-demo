@@ -25,6 +25,23 @@
   let paymentIntent;
 
   /**
+   * Create a PaymentIntent when the customer enters the checkout process.
+   */
+  const checkoutButton = document.getElementById('start-checkout');
+  checkoutButton.addEventListener('click', async () => {
+    // Update the interface to display the checkout form.
+    mainElement.classList.add('checkout');
+    checkoutButton.style.display = 'none';
+
+    // Create the PaymentIntent with the cart details.
+    const response = await store.createPaymentIntent(
+      config.currency,
+      store.getPaymentItems()
+    );
+    paymentIntent = response.paymentIntent;
+  });
+
+  /**
    * Setup Stripe Elements.
    */
 
@@ -535,16 +552,6 @@
 
     // Poll the PaymentIntent status.
     pollPaymentIntentStatus(source.metadata.paymentIntent);
-  } else {
-    // Update the interface to display the checkout form.
-    mainElement.classList.add('checkout');
-
-    // Create the PaymentIntent with the cart details.
-    const response = await store.createPaymentIntent(
-      config.currency,
-      store.getPaymentItems()
-    );
-    paymentIntent = response.paymentIntent;
   }
   document.getElementById('main').classList.remove('loading');
 
