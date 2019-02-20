@@ -41,13 +41,13 @@ const calculatePaymentAmount = async items => {
     const sku = skus.filter(sku => sku.id === c.parent)[0];
     return a + sku.price * c.quantity;
   }, 0);
-  return total;
+  return {amount: total, currency: skus[0].currency};
 };
 
 // Create the PaymentIntent on the backend.
 router.post('/payment_intents', async (req, res, next) => {
-  let {currency, items} = req.body;
-  const amount = await calculatePaymentAmount(items);
+  let {items} = req.body;
+  const {amount, currency} = await calculatePaymentAmount(items);
 
   try {
     const paymentIntent = await stripe.paymentIntents.create({
