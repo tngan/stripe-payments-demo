@@ -322,6 +322,18 @@ button:active {
   background: #43458b;
 }
 
+.button-group {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-around;
+}
+
+.button-group button {
+  width: 45%;
+  min-width: 260px;
+  margin: 5px;
+}
+
 #country {
   display: flex;
   align-items: center;

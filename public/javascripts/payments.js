@@ -25,13 +25,31 @@
   let paymentIntent;
 
   /**
+   * ### Stripe Checkout ###
+   * Create a CheckoutSession and redirect to Stripe Checkout.
+   */
+  const stripeCheckoutButton = document.getElementById('stripe-checkout');
+  stripeCheckoutButton.addEventListener('click', async () => {
+    stripeCheckoutButton.disabled = true;
+    stripeCheckoutButton.textContent = 'Redirecting…';
+    // Create Stripe Checkout session.
+    const {session} = await store.createCheckoutSession(
+      config.currency,
+      store.getPaymentItems()
+    );
+    await stripe.redirectToCheckout({
+      sessionId: session.id,
+    });
+  });
+
+  /**
+   * ### Custom Checkout Elements ###
    * Create a PaymentIntent when the customer enters the checkout process.
    */
-  const checkoutButton = document.getElementById('start-checkout');
-  checkoutButton.addEventListener('click', async () => {
-    // Update the interface to display the checkout form.
-    mainElement.classList.add('checkout');
-    checkoutButton.style.display = 'none';
+  const customCheckoutButton = document.getElementById('custom-checkout');
+  customCheckoutButton.addEventListener('click', async () => {
+    customCheckoutButton.disabled = true;
+    customCheckoutButton.textContent = 'Loading…';
 
     // Create the PaymentIntent with the cart details.
     const response = await store.createPaymentIntent(
@@ -39,6 +57,10 @@
       store.getPaymentItems()
     );
     paymentIntent = response.paymentIntent;
+
+    // Update the interface to display the checkout form.
+    mainElement.classList.add('checkout');
+    document.querySelector('.button-group').style.display = 'none';
   });
 
   /**
@@ -47,7 +69,7 @@
 
   // Create a Stripe client.
   const stripe = Stripe(config.stripePublishableKey, {
-    betas: ['payment_intent_beta_3'],
+    betas: ['payment_intent_beta_3', 'checkout_beta_4'],
   });
 
   // Create an instance of Elements.
@@ -552,6 +574,8 @@
 
     // Poll the PaymentIntent status.
     pollPaymentIntentStatus(source.metadata.paymentIntent);
+  } else if (url.searchParams.get('success') != null) {
+    mainElement.classList.add('checkout', 'success');
   }
   document.getElementById('main').classList.remove('loading');
 

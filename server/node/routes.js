@@ -89,6 +89,38 @@ router.post('/payment_intents/:id/shipping_change', async (req, res, next) => {
   }
 });
 
+// Create the Checkout session.
+router.post('/checkout_session', async (req, res, next) => {
+  let {items} = req.body;
+  const productList = await products.list();
+  const skus = productList.data.reduce((a, c) => [...a, ...c.skus.data], []);
+  const line_items = items.map(item => {
+    const sku = skus.filter(sku => sku.id === item.parent)[0];
+    return {
+      amount: sku.price,
+      quantity: item.quantity,
+      name: sku.id,
+      currency: sku.currency,
+    };
+  });
+
+  const session = await stripe.checkout.sessions.create(
+    {
+      success_url: `${req.headers.origin}/?success`,
+      cancel_url: `${req.headers.origin}/`,
+      payment_method_types: ['card'],
+      line_items,
+    },
+    {stripe_version: '2018-11-08; checkout_sessions_beta=v1'}
+  );
+
+  try {
+    return res.status(200).json({session});
+  } catch (err) {
+    return res.status(500).json({error: err.message});
+  }
+});
+
 // Webhook handler to process payments for sources asynchronously.
 router.post('/webhook', async (req, res) => {
   let data;

@@ -82,7 +82,7 @@ class Store {
     }
   }
 
-  // Create the PaymentIntent with the cart details.
+  // Update the PaymentIntent with the shipping cost.
   async updatePaymentIntentWithShippingCost(
     paymentIntent,
     items,
@@ -100,6 +100,28 @@ class Store {
           }),
         }
       );
+      const data = await response.json();
+      if (data.error) {
+        return {error: data.error};
+      } else {
+        return data;
+      }
+    } catch (err) {
+      return {error: err.message};
+    }
+  }
+
+  // Create the Checkout session with the cart details.
+  async createCheckoutSession(currency, items) {
+    try {
+      const response = await fetch('/checkout_session', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          currency,
+          items,
+        }),
+      });
       const data = await response.json();
       if (data.error) {
         return {error: data.error};
