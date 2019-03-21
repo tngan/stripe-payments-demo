@@ -168,6 +168,27 @@ router.post('/webhook', async (req, res) => {
   res.sendStatus(200);
 });
 
+// Sign up as a customer and save your card details.
+router.post('/signup', async (req, res, next) => {
+  const {email, password, source} = req.body;
+
+  // Create customer object and store source.
+  const customer = await stripe.customers.create({
+    description: `Customer for ${email}`,
+    source, // obtained with Stripe.js
+  });
+
+  // Encode customer ID and card details in a JWT.
+  const token = jwt.sign(
+    {
+      customer: customer.id,
+      brand,
+      last_4,
+    },
+    password
+  );
+});
+
 /**
  * Routes exposing the config as well as the ability to retrieve products.
  */
