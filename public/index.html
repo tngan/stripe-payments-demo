@@ -97,7 +97,11 @@
                 <label for="payment-card">Card</label>
               </li>
               <li>
-                <input type="radio" name="payment" id="payment-ach_credit_transfer" value="ach_credit_transfer" checked>
+                <input type="radio" name="payment" id="payment-saved_card" value="saved_card">
+                <label for="payment-saved_card">Saved Card</label>
+              </li>
+              <li>
+                <input type="radio" name="payment" id="payment-ach_credit_transfer" value="ach_credit_transfer">
                 <label for="payment-ach_credit_transfer">Bank Transfer</label>
               </li>
               <li>
@@ -144,7 +148,14 @@
                 <span>Card</span>
                 <div id="card-element" class="field"></div>
               </label>
+              <label>
+                <span>Save for later?</span>
+                <input type="checkbox" name="save-card-checkbox" checked>
+              </label>
             </fieldset>
+          </div>
+          <div class="payment-info saved_card">
+            <p>Pay with saved card</p>
           </div>
           <div class="payment-info sepa_debit">
             <fieldset>

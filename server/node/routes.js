@@ -15,6 +15,7 @@ const setup = require('./setup');
 const {products} = require('./inventory');
 const express = require('express');
 const router = express.Router();
+const jwt = require('jsonwebtoken');
 const stripe = require('stripe')(config.stripe.secretKey);
 stripe.setApiVersion(config.stripe.apiVersion);
 
@@ -170,23 +171,53 @@ router.post('/webhook', async (req, res) => {
 
 // Sign up as a customer and save your card details.
 router.post('/signup', async (req, res, next) => {
-  const {email, password, source} = req.body;
-
-  // Create customer object and store source.
-  const customer = await stripe.customers.create({
-    description: `Customer for ${email}`,
-    source, // obtained with Stripe.js
-  });
-
-  // Encode customer ID and card details in a JWT.
-  const token = jwt.sign(
-    {
+  const {email, source, intent} = req.body;
+  try {
+    // Create customer object and store source.
+    const customer = await stripe.customers.create({
+      description: `Customer for ${email}`,
+      email,
+      source, // obtained with Stripe.js
+    });
+    // Update PaymentIntent with customer ID and source.
+    const paymentIntent = await stripe.paymentIntents.update(intent, {
       customer: customer.id,
-      brand,
-      last_4,
-    },
-    password
-  );
+      source,
+    });
+
+    const customerDetails = {
+      id: customer.id,
+      source,
+      brand: customer.sources.data[0].card.brand,
+      last4: customer.sources.data[0].card.last4,
+    };
+
+    // Encode customer ID and card details in a JWT.
+    const loginToken = jwt.sign(
+      customerDetails,
+      email // use email as signing secret.
+    );
+    return res.status(200).json({loginToken, customerDetails, paymentIntent});
+  } catch (err) {
+    return res.status(500).json({error: err.message});
+  }
+});
+
+// Login as existing customer to retrieve stored card details.
+router.post('/login', async (req, res, next) => {
+  const {email, loginToken, intent} = req.body;
+  try {
+    // Decode JWT
+    const customerDetails = jwt.verify(loginToken, email);
+    // Update PaymentIntent with customer ID and source.
+    const paymentIntent = await stripe.paymentIntents.update(intent, {
+      customer: customerDetails.id,
+      source: customerDetails.source,
+    });
+    return res.status(200).json({customerDetails, paymentIntent});
+  } catch (err) {
+    return res.status(500).json({error: err.message});
+  }
 });
 
 /**

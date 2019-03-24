@@ -89,7 +89,7 @@ class Store {
     }
   }
 
-  // Create the PaymentIntent with the cart details.
+  // Update the PaymentIntent with the shipping cost.
   async updatePaymentIntentWithShippingCost(
     paymentIntent,
     items,

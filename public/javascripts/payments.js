@@ -240,6 +240,16 @@
       event.preventDefault();
       selectCountry(event.target.value);
     });
+  // Check if customer has signed up previously.
+  form.querySelector('input[name=email]').addEventListener('change', event => {
+    event.preventDefault();
+    const loginToken = localStorage.getItem(
+      `stripe-customer-${event.target.value}`
+    );
+    if (loginToken) {
+      handleExistingCustomer(event.target.value, loginToken, paymentIntent.id);
+    }
+  });
 
   // Submit handler for our payment form.
   form.addEventListener('submit', async event => {
@@ -261,11 +271,14 @@
         country,
       },
     };
+    // Check if details should be saved
+    const storeCard = form.querySelector('input[name=save-card-checkbox]')
+      .checked;
     // Disable the Pay button to prevent multiple click events.
     submitButton.disabled = true;
     submitButton.textContent = 'Processing…';
 
-    if (payment === 'card') {
+    if (payment === 'card' && !storeCard) {
       // Let Stripe.js handle the confirmation of the PaymentIntent with the card Element.
       const response = await stripe.handleCardPayment(
         paymentIntent.client_secret,
@@ -277,6 +290,37 @@
             },
           },
         }
+      );
+      handlePayment(response);
+    } else if (payment === 'card' && storeCard) {
+      // Tokenise the card details.
+      const {source} = await stripe.createSource(card, {
+        owner: {
+          name,
+        },
+      });
+      // Sign them up and create a customer object.
+      const signupResponse = await fetch('/signup', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          email,
+          source: source.id,
+          intent: paymentIntent.id,
+        }),
+      });
+      const {loginToken} = await signupResponse.json();
+      // Store loginToken in local storage for future usage.
+      localStorage.setItem(`stripe-customer-${email}`, loginToken);
+      // Confirm the PaymentIntent
+      const response = await stripe.handleCardPayment(
+        paymentIntent.client_secret
+      );
+      handlePayment(response);
+    } else if (payment === 'saved_card') {
+      // Confirm the PaymentIntent
+      const response = await stripe.handleCardPayment(
+        paymentIntent.client_secret
       );
       handlePayment(response);
     } else if (payment === 'sepa_debit') {
@@ -614,6 +658,10 @@
       countries: ['PT'],
       currencies: ['eur'],
     },
+    saved_card: {
+      name: 'Saved Card',
+      flow: 'none',
+    },
     sepa_debit: {
       name: 'SEPA Direct Debit',
       flow: 'none',
@@ -654,6 +702,33 @@
         'usd',
       ],
     },
+  };
+
+  // Show saved card for existing customer
+  const handleExistingCustomer = async (email, loginToken, intent) => {
+    // Verify JWT with password on server.
+    const loginResponse = await fetch('/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        email,
+        loginToken,
+        intent,
+      }),
+    });
+    const {customerDetails} = await loginResponse.json();
+    // Render saved card
+    document.querySelector(
+      '.payment-info.saved_card p'
+    ).textContent = `Pay with saved ${customerDetails.brand} card ending in ${
+      customerDetails.last4
+    }.`;
+    document
+      .querySelector(`#payment-saved_card`)
+      .parentElement.classList.toggle('visible', true);
+    document
+      .getElementById('payment-methods')
+      .classList.toggle('visible', true);
   };
 
   // Update the main button to reflect the payment method being selected.
@@ -747,6 +822,9 @@
       form
         .querySelector('.payment-info.ideal')
         .classList.toggle('visible', payment === 'ideal');
+      form
+        .querySelector('.payment-info.saved_card')
+        .classList.toggle('visible', payment === 'saved_card');
       form
         .querySelector('.payment-info.sepa_debit')
         .classList.toggle('visible', payment === 'sepa_debit');
