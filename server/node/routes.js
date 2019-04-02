@@ -171,25 +171,25 @@ router.post('/webhook', async (req, res) => {
 
 // Sign up as a customer and save your card details.
 router.post('/signup', async (req, res, next) => {
-  const {email, source, intent} = req.body;
+  let {email, paymentIntent} = req.body;
   try {
-    // Create customer object and store source.
-    const customer = await stripe.customers.create({
-      description: `Customer for ${email}`,
-      email,
-      source, // obtained with Stripe.js
-    });
-    // Update PaymentIntent with customer ID and source.
-    const paymentIntent = await stripe.paymentIntents.update(intent, {
-      customer: customer.id,
-      source,
-    });
+    let customer;
+    if (!paymentIntent.customer) {
+      // Create customer object and store the payment method.
+      customer = await stripe.customers.create({
+        description: `Customer for ${email}`,
+        email,
+      });
+      // Update PaymentIntent with customer ID and source.
+      paymentIntent = await stripe.paymentIntents.update(paymentIntent.id, {
+        customer: customer.id,
+      });
+    } else {
+      customer = {id: paymentIntent.customer};
+    }
 
     const customerDetails = {
       id: customer.id,
-      source,
-      brand: customer.sources.data[0].card.brand,
-      last4: customer.sources.data[0].card.last4,
     };
 
     // Encode customer ID and card details in a JWT.
@@ -209,12 +209,16 @@ router.post('/login', async (req, res, next) => {
   try {
     // Decode JWT
     const customerDetails = jwt.verify(loginToken, email);
-    // Update PaymentIntent with customer ID and source.
+    // Update PaymentIntent with customer ID.
     const paymentIntent = await stripe.paymentIntents.update(intent, {
       customer: customerDetails.id,
-      source: customerDetails.source,
     });
-    return res.status(200).json({customerDetails, paymentIntent});
+    // Retrieve the list of stored cards
+    const savedCards = await stripe.paymentMethods.list({
+      customer: customerDetails.id,
+      type: 'card',
+    });
+    return res.status(200).json({customerDetails, paymentIntent, savedCards});
   } catch (err) {
     return res.status(500).json({error: err.message});
   }

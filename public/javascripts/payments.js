@@ -30,7 +30,7 @@
 
   // Create a Stripe client.
   const stripe = Stripe(config.stripePublishableKey, {
-    betas: ['payment_intent_beta_3'],
+    betas: ['card_payment_method_beta_1'],
   });
 
   // Create an instance of Elements.
@@ -284,8 +284,8 @@
         paymentIntent.client_secret,
         card,
         {
-          source_data: {
-            owner: {
+          payment_method_data: {
+            billing_details: {
               name,
             },
           },
@@ -293,20 +293,13 @@
       );
       handlePayment(response);
     } else if (payment === 'card' && storeCard) {
-      // Tokenise the card details.
-      const {source} = await stripe.createSource(card, {
-        owner: {
-          name,
-        },
-      });
       // Sign them up and create a customer object.
       const signupResponse = await fetch('/signup', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
           email,
-          source: source.id,
-          intent: paymentIntent.id,
+          paymentIntent,
         }),
       });
       const {loginToken} = await signupResponse.json();
@@ -314,13 +307,28 @@
       localStorage.setItem(`stripe-customer-${email}`, loginToken);
       // Confirm the PaymentIntent
       const response = await stripe.handleCardPayment(
-        paymentIntent.client_secret
+        paymentIntent.client_secret,
+        card,
+        {
+          save_payment_method: true,
+          payment_method_data: {
+            billing_details: {
+              name,
+            },
+          },
+        }
       );
       handlePayment(response);
     } else if (payment === 'saved_card') {
+      const selectedCard = form.querySelector(
+        'select[name=saved_card] option:checked'
+      ).value;
       // Confirm the PaymentIntent
       const response = await stripe.handleCardPayment(
-        paymentIntent.client_secret
+        paymentIntent.client_secret,
+        {
+          payment_method: selectedCard,
+        }
       );
       handlePayment(response);
     } else if (payment === 'sepa_debit') {
@@ -716,13 +724,19 @@
         intent,
       }),
     });
-    const {customerDetails} = await loginResponse.json();
-    // Render saved card
-    document.querySelector(
-      '.payment-info.saved_card p'
-    ).textContent = `Pay with saved ${customerDetails.brand} card ending in ${
-      customerDetails.last4
-    }.`;
+    const loginData = await loginResponse.json();
+    paymentIntent = loginData.paymentIntent;
+    // Add saved cards to select element.
+    loginData.savedCards.data.forEach(paymentMethod => {
+      const opt = document.createElement('option');
+      opt.setAttribute('value', paymentMethod.id);
+      opt.textContent = `${paymentMethod.card.brand.toUpperCase()} **** ${
+        paymentMethod.card.last4
+      }`;
+      document
+        .querySelector('.payment-info.saved_card select')
+        .appendChild(opt);
+    });
     document
       .querySelector(`#payment-saved_card`)
       .parentElement.classList.toggle('visible', true);
