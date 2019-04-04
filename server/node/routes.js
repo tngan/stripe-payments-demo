@@ -82,6 +82,21 @@ router.post('/payment_intents/:id/shipping_change', async (req, res, next) => {
   }
 });
 
+// Helper function to deduplicate stored payment methods based on their fingerprint
+const deduplicatePaymentMethods = async (customer, type) => {
+  const fingerprints = [];
+  for await (const method of stripe.paymentMethods.list({customer, type})) {
+    // Check if fingerprint is in list.
+    if (fingerprints.includes(method[type].fingerprint)) {
+      // This is a duplicate method -> let's detach it.
+      await stripe.paymentMethods.detach(method.id);
+      console.log(`✌️  Detached duplicate payment method ${method.id}.`);
+    } else {
+      fingerprints.push(method[type].fingerprint);
+    }
+  }
+};
+
 // Webhook handler to process payments for sources asynchronously.
 router.post('/webhook', async (req, res) => {
   let data;
@@ -132,6 +147,10 @@ router.post('/webhook', async (req, res) => {
       );
       // Note: you can use the existing PaymentIntent to prompt your customer to try again by attaching a newly created source:
       // https://stripe.com/docs/payments/payment-intents#lifecycle
+    }
+    // Run deduplication if the PaymentIntent has a customer associated.
+    if (paymentIntent.customer) {
+      await deduplicatePaymentMethods(paymentIntent.customer, 'card'); // TODO: run for all PMs.
     }
   }
 
