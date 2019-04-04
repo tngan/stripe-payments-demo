@@ -124,8 +124,10 @@ router.post('/webhook', async (req, res) => {
       );
     } else if (eventType === 'payment_intent.payment_failed') {
       console.log(
-        `🔔  Webhook received! Payment on source ${
-          paymentIntent.last_payment_error.source.id
+        `🔔  Webhook received! Payment on payment method ${
+          paymentIntent.last_payment_error.payment_method.id
+        } of type ${
+          paymentIntent.last_payment_error.payment_method.type
         } for PaymentIntent ${paymentIntent.id} failed.`
       );
       // Note: you can use the existing PaymentIntent to prompt your customer to try again by attaching a newly created source:
