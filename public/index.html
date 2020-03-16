@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <title>Stripe Payments Demo</title>
+  <title>Payments</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="twitter:card" content="summary">
@@ -11,39 +11,39 @@
   <meta name="twitter:description" content="Sample store accepting universal payments on the web with Stripe Elements, Payment Request, Apple Pay, Google Pay, and the Sources API.">
   <meta name="twitter:image" content="https://stripe-payments-demo.appspot.com/images/twitter.png">
   <link rel="stylesheet" type="text/css" href="/stylesheets/store.css">
-  <link rel="icon" type="image/png" sizes="104x80" href="/images/logo.png">
+  <link rel="icon" type="image/png" sizes="104x80" href="/images/favicon.ico">
 </head>
 
 <body>
   <main id="main" class="loading">
     <header class="header">
-      <a class="shop" href="/">Stripe Payments Demo</a>
-      <a class="github" href="https://github.com/stripe/stripe-payments-demo">View on GitHub</a>
+      <a class="shop" href="/">PSYGIG Thermal</a>
+      <div class="header-icon"></div>
     </header>
     <div id="checkout">
       <div id="payment-request">
         <div id="payment-request-button"></div>
       </div>
       <form id="payment-form" method="POST" action="/orders">
-        <p class="instruction"><span>Complete</span>/<span id="generate">generate</span> your shipping and payment details below</p>
+        <p class="instruction"><span>Complete</span> your shipping and payment details below</p>
         <section>
           <h2>Shipping &amp; Billing Information</h2>
           <fieldset class="with-state">
             <label>
               <span>Name</span>
-              <input name="name" class="field" placeholder="Jenny Rosen" required>
+              <input name="name" class="field" placeholder="Takumi Etsu" required>
             </label>
             <label>
               <span>Email</span>
-              <input name="email" type="email" class="field" placeholder="jenny@example.com" required>
+              <input name="email" type="email" class="field" placeholder="takumi.etsu@example.com" required>
             </label>
             <label>
               <span>Address</span>
-              <input name="address" class="field" placeholder="185 Berry Street Suite 550">
+              <input name="address" class="field" placeholder="263-1072, Kyowa, Kuriyama-cho Yubari-gun">
             </label>
             <label>
               <span>City</span>
-              <input name="city" class="field" placeholder="San Francisco">
+              <input name="city" class="field" placeholder="Hokkaido">
             </label>
             <label class="state">
               <span>State</span>
@@ -55,7 +55,7 @@
             </label>
             <label class="select">
               <span>Country</span>
-              <div id="country" class="field US">
+              <div id="country" class="field JP">
                 <select name="country">
                   <option value="AU">Australia</option>
                   <option value="AT">Austria</option>
@@ -70,7 +70,7 @@
                   <option value="HK">Hong Kong</option>
                   <option value="IE">Ireland</option>
                   <option value="IT">Italy</option>
-                  <option value="JP">Japan</option>
+                  <option value="JP" selected="selected">Japan</option>
                   <option value="LU">Luxembourg</option>
                   <option value="MY">Malaysia</option>
                   <option value="MX">Mexico</option>
@@ -83,7 +83,7 @@
                   <option value="SE">Sweden</option>
                   <option value="CH">Switzerland</option>
                   <option value="GB">United Kingdom</option>
-                  <option value="US" selected="selected">United States</option>
+                  <option value="US">United States</option>
                 </select>
               </div>
             </label>
@@ -219,26 +219,6 @@
       <div class="line-item shipping">
         <p class="label">Shipping</p>
         <p class="price">Free</p>
-      </div>
-      <div class="line-item demo">
-        <div id="demo">
-          <p class="label">Demo in test mode</p>
-          <p class="note">You can copy and paste the following test cards to trigger different scenarios:</p>
-          <table class="note">
-            <tr>
-              <td>Default US card:</td>
-              <td class="card-number">4242<span></span>4242<span></span>4242<span></span>4242</td>
-            </tr>
-            <tr>
-              <td><a href="https://stripe.com/guides/strong-customer-authentication" target="_blank">Authentication</a> required:</td>
-              <td class="card-number">4000<span></span>0027<span></span>6000<span></span>3184</td>
-            </tr>
-            </table>
-          <p class="note"> 
-            See the <a href="https://stripe.com/docs/testing#cards" target="_blank">docs</a> for a full list of test cards. 
-            Non-card payments will redirect to test pages.
-          </p>
-        </div>
       </div>
       <div class="line-item total">
         <p class="label">Total</p>

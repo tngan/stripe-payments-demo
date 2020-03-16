@@ -1,8 +1,0 @@
-# Python environment files
-venv
-env
-
-# Python compiled resources + JetBrains 
-__pycache__/
-.pytest_cache/
-.idea
