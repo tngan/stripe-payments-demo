@@ -57,15 +57,17 @@ module.exports = {
     {
       id: 'free',
       label: 'Free Shipping',
-      detail: 'Delivery within 5 days',
+      detail: 'Delivery within 10 days',
       amount: 0,
     },
+    /*
     {
       id: 'express',
       label: 'Express Shipping',
       detail: 'Next day delivery',
       amount: 500,
     },
+    */
   ],
 
   // Server port.

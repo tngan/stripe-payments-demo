@@ -171,6 +171,7 @@ router.post('/webhook', async (req, res) => {
  */
 
 // Expose the Stripe publishable key and other pieces of config via an endpoint.
+/*
 router.get('/config', (req, res) => {
   res.json({
     stripePublishableKey: config.stripe.publishableKey,
@@ -181,6 +182,7 @@ router.get('/config', (req, res) => {
     shippingOptions: config.shippingOptions,
   });
 });
+*/
 
 // Retrieve all products.
 router.get('/products', async (req, res) => {

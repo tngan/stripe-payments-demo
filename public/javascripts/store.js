@@ -13,6 +13,7 @@ class Store {
   constructor() {
     this.lineItems = [];
     this.products = {};
+    this.quantity = {};
     this.productsFetchPromise = null;
     this.displayPaymentSummary();
   }
@@ -79,6 +80,7 @@ class Store {
         // Check if we have SKUs on the product, otherwise load them separately.
         for (const product of products) {
           this.products[product.id] = product;
+          this.quantity[product.id] = 0;
           if (!product.skus) {
             await this.loadSkus(product.id);
           }
@@ -142,7 +144,7 @@ class Store {
 
   // Format a price (assuming a two-decimal currency like EUR or USD for simplicity).
   formatPrice(amount, currency) {
-    let price = (amount / 100).toFixed(2);
+    let price = amount.toFixed(2);
     let numberFormat = new Intl.NumberFormat(['en-US'], {
       style: 'currency',
       currency: currency,
@@ -158,29 +160,31 @@ class Store {
     // Fetch the products from the store to get all the details (name, price, etc.).
     await this.loadProducts();
     const orderItems = document.getElementById('order-items');
-    const orderTotal = document.getElementById('order-total');
     let currency;
     // Build and append the line items to the payment summary.
     for (let [id, product] of Object.entries(this.products)) {
-      const randomQuantity = (min, max) => {
-        min = Math.ceil(min);
-        max = Math.floor(max);
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-      };
-      const quantity = randomQuantity(1, 2);
+      const quantity = this.quantity[id];
       let sku = product.skus.data[0];
       let skuPrice = this.formatPrice(sku.price, sku.currency);
       let lineItemPrice = this.formatPrice(sku.price * quantity, sku.currency);
       let lineItem = document.createElement('div');
       lineItem.classList.add('line-item');
       lineItem.innerHTML = `
-        <img class="image" src="/images/products/${product.id}.png" alt="${product.name}">
-        <div class="label">
-          <p class="product">${product.name}</p>
-          <p class="sku">${Object.values(sku.attributes).join(' ')}</p>
+        <div>
+          <img class="image" src="/images/products/${product.id}.png" alt="${product.name}">
         </div>
-        <p class="count">${quantity} x ${skuPrice}</p>
-        <p class="price">${lineItemPrice}</p>`;
+        <div class="product-container">
+          <div class="product-metadata">
+            <p class="product">${product.name}</p>
+            <div class="purchase-info">
+              <input id="quantity-input-${product.id}" class="quantity-input" type="number" value="${this.quantity[product.id]}" oninput="store.updateQuantity('${product.id}')" />
+              <p class="count"> x ${skuPrice}</p>
+              <p id="price-${product.id}" class="price">${lineItemPrice}</p>
+            </div>
+          </div>
+          <p class="sku">${sku.attributes.description}</p>
+        </div>
+      `;
       orderItems.appendChild(lineItem);
       currency = sku.currency;
       this.lineItems.push({
@@ -189,11 +193,42 @@ class Store {
         quantity,
       });
     }
-    // Add the subtotal and total to the payment summary.
-    const total = this.formatPrice(this.getPaymentTotal(), currency);
-    orderTotal.querySelector('[data-subtotal]').innerText = total;
-    orderTotal.querySelector('[data-total]').innerText = total;
+    this.rerenderTotal(currency);
   }
+
+  updateQuantity(id) {
+    const quantity = parseInt(document.getElementById(`quantity-input-${id}`).value);
+    this.quantity[id] = quantity;
+    const targetItem = this.lineItems.find(item => item.product === id);
+    if (targetItem) {
+      targetItem.quantity = quantity;
+    }
+    this.updateTotal();
+  }
+
+  updateTotal() {
+    let currency;
+    for (let [id, product] of Object.entries(this.products)) {
+      const sku = product.skus.data[0];
+      const quantity = this.quantity[id];
+      currency = sku.currency;
+      // price item subtotal
+      const priceElement = document.getElementById(`price-${id}`);
+      const itemTotal = sku.price * quantity;
+      const displayItemTotal = this.formatPrice(itemTotal ? itemTotal : 0, currency);
+      priceElement.innerText = displayItemTotal;
+    }  
+    this.rerenderTotal(currency);
+  }
+
+  rerenderTotal(currency) {
+    const orderTotal = document.getElementById('order-total');
+    const paymentTotal = this.getPaymentTotal();
+    const displayTotal = this.formatPrice(paymentTotal ? paymentTotal : 0, currency);
+    orderTotal.querySelector('[data-subtotal]').innerText = displayTotal;
+    orderTotal.querySelector('[data-total]').innerText = displayTotal;
+  }
+
 }
 
 window.store = new Store();

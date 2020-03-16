@@ -51,12 +51,13 @@
             </label>
             <label class="zip">
               <span>ZIP</span>
-              <input name="postal_code" class="field" placeholder="94107">
+              <input name="postal_code" class="field" placeholder="052-0000">
             </label>
             <label class="select">
               <span>Country</span>
               <div id="country" class="field JP">
                 <select name="country">
+                  <!--
                   <option value="AU">Australia</option>
                   <option value="AT">Austria</option>
                   <option value="BE">Belgium</option>
@@ -70,7 +71,6 @@
                   <option value="HK">Hong Kong</option>
                   <option value="IE">Ireland</option>
                   <option value="IT">Italy</option>
-                  <option value="JP" selected="selected">Japan</option>
                   <option value="LU">Luxembourg</option>
                   <option value="MY">Malaysia</option>
                   <option value="MX">Mexico</option>
@@ -84,6 +84,8 @@
                   <option value="CH">Switzerland</option>
                   <option value="GB">United Kingdom</option>
                   <option value="US">United States</option>
+                  -->
+                  <option value="JP" selected="selected">Japan</option>
                 </select>
               </div>
             </label>
@@ -102,10 +104,12 @@
                 <input type="radio" name="payment" id="payment-ach_credit_transfer" value="ach_credit_transfer" checked>
                 <label for="payment-ach_credit_transfer">Bank Transfer</label>
               </li>
+              <!--
               <li>
                 <input type="radio" name="payment" id="payment-alipay" value="alipay">
                 <label for="payment-alipay">Alipay</label>
               </li>
+              -->
               <li>
                 <input type="radio" name="payment" id="payment-bancontact" value="bancontact">
                 <label for="payment-bancontact">Bancontact</label>
@@ -134,10 +138,12 @@
                 <input type="radio" name="payment" id="payment-sofort" value="sofort">
                 <label for="payment-sofort">SOFORT</label>
               </li>
+              <!--
               <li>
                 <input type="radio" name="payment" id="payment-wechat" value="wechat">
                 <label for="payment-wechat">WeChat Pay</label>
               </li>
+              -->
             </ul>
           </nav>
           <div class="payment-info card visible">

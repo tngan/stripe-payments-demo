@@ -1004,7 +1004,6 @@ button:active {
 #summary p {
   font-size: 16px;
   font-weight: 400;
-  margin-top: 10px;
 }
 
 #summary .discount p {
@@ -1014,7 +1013,7 @@ button:active {
 #summary .line-item {
   display: flex;
   flex-direction: row;
-  padding: 30px 30px 0 30px;
+  padding: 20px 20px 0 20px;
 }
 
 #summary .line-item .image {
@@ -1029,6 +1028,23 @@ button:active {
 #summary .line-item .label {
   flex: 1;
   text-align: left;
+}
+
+#summary .product-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+#summary .purchase-info {
+  display: flex;
+  align-items: center;
+}
+
+#summary .product-metadata {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 #summary .line-item .product {
@@ -1315,4 +1331,24 @@ button:active {
   #confirmation h1 {
     text-align: center;
   }
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance:textfield;
+}
+
+input.quantity-input {
+  width: 25px;
+  text-align: right;
+  background-color: #f1f1f1;
+  padding: 3px 5px;
+  border-radius: 5px;
 }
