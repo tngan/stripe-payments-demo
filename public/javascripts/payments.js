@@ -30,6 +30,7 @@
 
   // Create a Stripe client.
   const stripe = Stripe(config.stripePublishableKey);
+  window.stripe = stripe;
 
   // Create an instance of Elements.
   const elements = stripe.elements();
@@ -181,8 +182,16 @@
 
     if (payment === 'card') {
       // Let Stripe.js handle the confirmation of the PaymentIntent with the card Element.
+
+      const response = await stripe.createToken(card);
+
+      console.log('response', response.token.id);
+
+      const charge = await store.createCharge(response.token.id, { name, email });
+
+      /*
       const response = await stripe.confirmCardPayment(
-        paymentIntent.client_secret,
+        store.paymentIntent.client_secret,
         {
           payment_method: {
             card,
@@ -193,11 +202,14 @@
           shipping,
         }
       );
-      handlePayment(response);
+      */
+
+      handleCharge(charge);
+
     } else if (payment === 'sepa_debit') {
       // Confirm the PaymentIntent with the IBAN Element.
       const response = await stripe.confirmSepaDebitPayment(
-        paymentIntent.client_secret,
+        store.paymentIntent.client_secret,
         {
           payment_method: {
             sepa_debit: iban,
@@ -213,8 +225,8 @@
       // Prepare all the Stripe source common data.
       const sourceData = {
         type: payment,
-        amount: paymentIntent.amount,
-        currency: paymentIntent.currency,
+        amount: store.paymentIntent.amount,
+        currency: store.paymentIntent.currency,
         owner: {
           name,
           email,
@@ -224,7 +236,7 @@
         },
         statement_descriptor: 'Stripe Payments Demo',
         metadata: {
-          paymentIntent: paymentIntent.id,
+          paymentIntent: store.paymentIntent.id,
         },
       };
 
@@ -233,7 +245,7 @@
         case 'ideal':
           // Confirm the PaymentIntent with the iDEAL bank Element.
           // This will redirect to the banking site.
-          stripe.confirmIdealPayment(paymentIntent.client_secret, {
+          stripe.confirmIdealPayment(store.paymentIntent.client_secret, {
             payment_method: {
               ideal: idealBank,
             },
@@ -250,7 +262,7 @@
         case 'ach_credit_transfer':
           // ACH Bank Transfer: Only supports USD payments, edit the default config to try it.
           // In test mode, we can set the funds to be received via the owner email.
-          sourceData.owner.email = `amount_${paymentIntent.amount}@example.com`;
+          sourceData.owner.email = `amount_${store.paymentIntent.amount}@example.com`;
           break;
       }
 
@@ -259,6 +271,30 @@
       handleSourceActiviation(source);
     }
   });
+
+  
+  const handleCharge = chargeResponse => {
+    
+    const { charge } = chargeResponse;
+    const mainElement = document.getElementById('main');
+    const confirmationElement = document.getElementById('confirmation');
+
+    // confirm the amount authorization is succeeded
+    if (charge.captured === false) {
+      mainElement.classList.remove('processing');
+      mainElement.classList.remove('receiver');
+      confirmationElement.querySelector('.note').innerText =
+      'We have authorized the payment amount on the credit card you have provided, the amount will only be captured when the item is being shipped.'; 
+      mainElement.classList.add('success');
+    } else {
+      // Charge has failed.
+      mainElement.classList.remove('success');
+      mainElement.classList.remove('processing');
+      mainElement.classList.remove('receiver');
+      mainElement.classList.add('error');
+    }
+
+  };
 
   // Handle new PaymentIntent result
   const handlePayment = paymentResponse => {
@@ -460,11 +496,15 @@
     mainElement.classList.add('checkout');
 
     // Create the PaymentIntent with the cart details.
-    const response = await store.createPaymentIntent(
-      config.currency,
-      store.getLineItems()
-    );
-    paymentIntent = response.paymentIntent;
+    try {
+      const response = await store.createPaymentIntent(
+        config.currency,
+        store.getLineItems()
+      );
+      paymentIntent = response.paymentIntent;
+    } catch (e) {
+      console.error('no payment intent');
+    }
   }
   document.getElementById('main').classList.remove('loading');
 

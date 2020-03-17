@@ -31,19 +31,19 @@
           <fieldset class="with-state">
             <label>
               <span>Name</span>
-              <input name="name" class="field" placeholder="Takumi Etsu" required>
+              <input name="name" class="field" placeholder="Takumi Etsu" value="Takumi Etsu" required>
             </label>
             <label>
               <span>Email</span>
-              <input name="email" type="email" class="field" placeholder="takumi.etsu@example.com" required>
+              <input name="email" type="email" class="field" placeholder="takumi.etsu@example.com" value="tony@psygig.com" required>
             </label>
             <label>
               <span>Address</span>
-              <input name="address" class="field" placeholder="263-1072, Kyowa, Kuriyama-cho Yubari-gun">
+              <input name="address" class="field" placeholder="263-1072, Kyowa, Kuriyama-cho Yubari-gun" value="263-1072, Kyowa, Kuriyama-cho Yubari-gun" required>
             </label>
             <label>
               <span>City</span>
-              <input name="city" class="field" placeholder="Hokkaido">
+              <input name="city" class="field" placeholder="Hokkaido" value="Hokkaido" required>
             </label>
             <label class="state">
               <span>State</span>
@@ -51,7 +51,7 @@
             </label>
             <label class="zip">
               <span>ZIP</span>
-              <input name="postal_code" class="field" placeholder="052-0000">
+              <input name="postal_code" class="field" placeholder="052-0000" value="052-0000">
             </label>
             <label class="select">
               <span>Country</span>
@@ -100,16 +100,15 @@
                 <input type="radio" name="payment" id="payment-card" value="card" checked>
                 <label for="payment-card">Card</label>
               </li>
+              <!--
               <li>
                 <input type="radio" name="payment" id="payment-ach_credit_transfer" value="ach_credit_transfer" checked>
                 <label for="payment-ach_credit_transfer">Bank Transfer</label>
               </li>
-              <!--
               <li>
                 <input type="radio" name="payment" id="payment-alipay" value="alipay">
                 <label for="payment-alipay">Alipay</label>
               </li>
-              -->
               <li>
                 <input type="radio" name="payment" id="payment-bancontact" value="bancontact">
                 <label for="payment-bancontact">Bancontact</label>
@@ -138,7 +137,6 @@
                 <input type="radio" name="payment" id="payment-sofort" value="sofort">
                 <label for="payment-sofort">SOFORT</label>
               </li>
-              <!--
               <li>
                 <input type="radio" name="payment" id="payment-wechat" value="wechat">
                 <label for="payment-wechat">WeChat Pay</label>
@@ -197,7 +195,7 @@
       </div>
       <div class="status success">
         <h1>Thanks for your order!</h1>
-        <p>Woot! You successfully made a payment with Stripe.</p>
+        <p>You have successfully placed an order.</p>
         <p class="note">We just sent your receipt to your email address, and your items will be on their way shortly.</p>
       </div>
       <div class="status receiver">
@@ -239,7 +237,9 @@
   <!-- Library for generating fake user information -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Faker/3.1.0/faker.min.js" integrity="sha384-PlFzuf6GOlJNxLuosezJ/jwndIVZ2hWI/AmvYQtBzstOdLtcUe6DPSI4LsqwiN1y" crossorigin="anonymous"></script>
   <!-- App -->
+  <!--
   <script src="/javascripts/generate.js"></script>
+  -->
   <script src="/javascripts/store.js"></script>
   <script src="/javascripts/payments.js"></script>
 </body>

@@ -14,15 +14,17 @@ class Store {
     this.lineItems = [];
     this.products = {};
     this.quantity = {};
+    this.config = null;
     this.productsFetchPromise = null;
     this.displayPaymentSummary();
+    this.paymentIntent = null;
   }
 
   // Compute the total for the payment based on the line items (SKUs and quantity).
   getPaymentTotal() {
     return Object.values(this.lineItems).reduce(
       (total, {product, sku, quantity}) =>
-        total + quantity * this.products[product].skus.data[0].price,
+        total + (quantity ? quantity : 0) * this.products[product].skus.data[0].price,
       0
     );
   }
@@ -49,6 +51,7 @@ class Store {
         // Hide the demo notice if the publishable key is in live mode.
         document.querySelector('#order-total .demo').style.display = 'none';
       }
+      this.config = config;
       return config;
     } catch (err) {
       return {error: err.message};
@@ -93,6 +96,12 @@ class Store {
 
   // Create the PaymentIntent with the cart details.
   async createPaymentIntent(currency, items) {
+
+    if (items.every(i => !i.quantity)) {
+      // skip when all quantity of items are zero
+      return;
+    }
+
     try {
       const response = await fetch('/payment_intents', {
         method: 'POST',
@@ -103,6 +112,9 @@ class Store {
         }),
       });
       const data = await response.json();
+
+      store.paymentIntent = data.paymentIntent;
+
       if (data.error) {
         return {error: data.error};
       } else {
@@ -198,12 +210,14 @@ class Store {
 
   updateQuantity(id) {
     const quantity = parseInt(document.getElementById(`quantity-input-${id}`).value);
-    this.quantity[id] = quantity;
+    this.quantity[id] = quantity ? quantity : 0;
     const targetItem = this.lineItems.find(item => item.product === id);
     if (targetItem) {
       targetItem.quantity = quantity;
     }
     this.updateTotal();
+    // create payment intent whenever quantity is changed
+    this.createPaymentIntent(this.config.currency, this.getLineItems());
   }
 
   updateTotal() {
@@ -218,7 +232,8 @@ class Store {
       const displayItemTotal = this.formatPrice(itemTotal ? itemTotal : 0, currency);
       priceElement.innerText = displayItemTotal;
     }  
-    this.rerenderTotal(currency);
+    const displayedTotal = this.rerenderTotal(currency);
+    this.updateButtonLabel(displayedTotal);
   }
 
   rerenderTotal(currency) {
@@ -227,6 +242,35 @@ class Store {
     const displayTotal = this.formatPrice(paymentTotal ? paymentTotal : 0, currency);
     orderTotal.querySelector('[data-subtotal]').innerText = displayTotal;
     orderTotal.querySelector('[data-total]').innerText = displayTotal;
+    return displayTotal;
+  }
+
+  updateButtonLabel(amount) {
+    const form = document.getElementById('payment-form');
+    const submitButton = form.querySelector('button[type=submit]');
+    const label = `Pay ${amount}`;
+    submitButton.innerText = label;
+  };
+
+  async createCharge(token, metadata) {
+    const amount = this.getPaymentTotal();
+    try {
+      const response = await fetch(`/charges`,
+        {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            source: token,
+            amount: amount,
+            currency: this.config.currency,
+            metadata: metadata
+          }),
+        }
+      );
+      return await response.json();
+    } catch(e) {
+      console.error('failed to create a charge', e);
+    }
   }
 
 }

@@ -171,7 +171,6 @@ router.post('/webhook', async (req, res) => {
  */
 
 // Expose the Stripe publishable key and other pieces of config via an endpoint.
-/*
 router.get('/config', (req, res) => {
   res.json({
     stripePublishableKey: config.stripe.publishableKey,
@@ -182,7 +181,6 @@ router.get('/config', (req, res) => {
     shippingOptions: config.shippingOptions,
   });
 });
-*/
 
 // Retrieve all products.
 router.get('/products', async (req, res) => {
@@ -198,6 +196,23 @@ router.get('/products/:id', async (req, res) => {
 router.get('/payment_intents/:id/status', async (req, res) => {
   const paymentIntent = await stripe.paymentIntents.retrieve(req.params.id);
   res.json({paymentIntent: {status: paymentIntent.status}});
+});
+
+router.post('/charges', async (req, res) => {
+
+  // create an authorised charge first
+  const response = await stripe.charges.create({
+    ...req.body,
+    capture: false
+  });
+
+  res.json({
+    charge: {
+      id: response.id,
+      amount: response.amount,
+      captured: response.captured
+    }
+  })
 });
 
 module.exports = router;
